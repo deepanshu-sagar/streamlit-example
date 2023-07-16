@@ -294,3 +294,52 @@ if st.button('Submit'):
     fetching_message.empty()
     st.text_area("Command Output", output.decode('utf-8'), height=200)
     st.write(f'Total time taken: {total_time} seconds')
+
+
+st.title('🦜🔗 Bito with memory')
+
+import streamlit as st
+import tempfile
+
+def clear_runcontext():
+    with open("runcontext.txt", "w") as f:
+        f.write('')
+
+def run_cmd(inventory_text, prompt_text):
+
+    inventory_fd = 'temp_inventory.txt'
+    prompt_fd = 'temp_prompt_fd.txt'
+    testdata_path = 'temp_testdata.txt'
+
+    with open(inventory_fd, 'w') as inventory_file:
+        inventory_file.write(inventory_text)
+        
+    with open(prompt_fd, 'w') as prompt_file:
+        prompt_file.write(prompt_text)
+
+    cmd = ["type" if os.name == 'nt' else "cat", inventory_fd, "|", "bito", "-c", "runcontext.txt", "-p", prompt_fd, ">", testdata_path]
+    print (cmd)
+    subprocess.check_output(cmd, shell=True)
+
+    with open(testdata_path, 'r') as testdata_file:
+        output = testdata_file.read()
+
+    return output
+
+
+if 'inventory_text' not in st.session_state:
+    st.session_state.inventory_text = ''
+
+if 'prompt_text' not in st.session_state:
+    st.session_state.prompt_text = 'Ask Anything...'
+
+inventory_text = st.text_area("Initial Text If Any... I'll Keep it in memory", st.session_state.inventory_text)
+prompt_text = st.text_area("Prompt", st.session_state.prompt_text)
+
+if st.button('Submit', key='submit_new'):
+    output = run_cmd(inventory_text, prompt_text)
+    st.text_area("Command Output", output, height=200)
+
+if st.button('Clear Memory', key='clear_memory'):
+    clear_runcontext()
+
