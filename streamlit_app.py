@@ -316,6 +316,9 @@ def run_cmd(inventory_text, prompt_text):
         
     with open(prompt_fd, 'w') as prompt_file:
         prompt_file.write(prompt_text)
+        
+    with open(testdata_path, 'w') as inventory_file:
+        inventory_file.write('')
 
     cmd = ["type" if os.name == 'nt' else "cat", inventory_fd, "|", "bito", "-c", "runcontext.txt", "-p", prompt_fd, ">", testdata_path]
     print (cmd)
