@@ -246,3 +246,51 @@ with st.form('myform', clear_on_submit=True):
 
 if len(result):
     st.info(response)
+
+
+st.title('🦜🔗 Bito')
+
+import streamlit as st
+import subprocess
+import time
+import tempfile
+import os
+
+def run_cmd(prompt_text, pyfile_text):
+    start_time = time.time()
+
+    prompt_fd, prompt_path = tempfile.mkstemp()
+    pyfile_fd, pyfile_path = tempfile.mkstemp()
+
+    with os.fdopen(prompt_fd, 'w') as prompt_file:
+        prompt_file.write(prompt_text)
+        
+    with os.fdopen(pyfile_fd, 'w') as pyfile_file:
+        pyfile_file.write(pyfile_text)
+
+    cmd = ["bito", "-p", prompt_path, "-f", pyfile_path]
+    output = subprocess.check_output(cmd)
+    
+    end_time = time.time()
+    total_time = end_time - start_time
+    
+    # Clean up temporary files
+    os.unlink(prompt_path)
+    os.unlink(pyfile_path)
+    
+    return output, total_time
+
+
+prompt_text = st.text_area("Prompt Text", "Entry Your Prompt Text Here")
+uploaded_file = st.file_uploader("Choose a txt file... ask anything about the file.", type="txt")
+
+if uploaded_file is not None:
+    pyfile_text = uploaded_file.read().decode()
+
+if st.button('Submit'):
+    fetching_message = st.empty()
+    fetching_message.text("Fetching response...")
+    output, total_time = run_cmd(prompt_text, pyfile_text)
+    fetching_message.empty()
+    st.text_area("Command Output", output.decode('utf-8'), height=200)
+    st.write(f'Total time taken: {total_time} seconds')
