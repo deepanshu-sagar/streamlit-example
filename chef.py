@@ -1,0 +1,54 @@
+import streamlit as st
+import pandas as pd
+import openai,re
+
+openai.api_key = ''
+
+cuisines_by_ethnicity = {
+    "American": ["Fast Food", "Comfort Food", "BBQ", "Cajun", "Soul Food", "Tex-Mex", "New England"],
+    "Chinese": ["Szechuan", "Cantonese", "Hunan", "Shandong", "Fujian", "Zhejiang", "Jiangsu"],
+    "Indian": ["North Indian", "South Indian", "West Indian", "East Indian", "Rajasthani", "Punjabi", "Goan"],
+    "Italian": ["Tuscan", "Sicilian", "Lazio", "Veneto", "Lombard", "Piedmontese", "Calabrian"],
+    "Mexican": ["Oaxacan", "Veracruz", "Yucatecan", "Poblano", "Norteno", "Jalisco", "Baja"],
+    "Japanese": ["Kanto", "Kansai", "Hokkaido", "Kyushu", "Chugoku", "Tohoku", "Chubu"],
+    "Thai": ["Central Thai", "Isan", "Southern Thai", "Northern Thai", "Western Thai", "Eastern Thai", "Bangkok"]
+}
+
+def suggest_ingredients(cuisine):
+    prompt = f"What are some typical ingredients used in {cuisine} cuisine? only ingriedients names. in comma separated format"
+    completion = openai.ChatCompletion.create(
+  model="gpt-3.5-turbo",
+  messages=[
+    {"role": "system", "content": "You are a helpful assistant."},
+    {"role": "user", "content": f"{prompt}"}
+  ]
+)
+    #print (completion.choices[0].message["content"])
+    #ing = re.findall("- (.*)", completion.choices[0].message['content'])
+    #print (ing)
+    return completion.choices[0].message["content"]
+
+def generate_recipe(ingredients, cuisine):
+    prompt = f"Create a {cuisine} recipe using the following ingredients: {ingredients}."
+    completion = openai.ChatCompletion.create(
+  model="gpt-3.5-turbo",
+  messages=[
+    {"role": "system", "content": "You are a helpful assistant."},
+    {"role": "user", "content": f"{prompt}"}
+  ]
+)
+    return completion.choices[0].message
+
+st.title("Ethnicity Based Recipe Generator")
+
+ethnicity = st.selectbox('Select Ethnicity', list(cuisines_by_ethnicity.keys()))
+cuisine = st.selectbox('Select Cuisine', cuisines_by_ethnicity[ethnicity])
+
+ingredients = st.text_area("Ingredients (comma-separated)", suggest_ingredients(cuisine))
+
+if st.button('Generate Recipes'):
+    for i in range(3):
+        recipe = generate_recipe(ingredients, cuisine)
+        recipe_content = recipe["content"]
+        recipe_content = recipe_content.replace("\n", "<br />")
+        st.markdown(f'<div style="height: 600px; overflow-y: auto;">{recipe_content}</div>', unsafe_allow_html=True)
