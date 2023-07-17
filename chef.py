@@ -1,8 +1,7 @@
 import streamlit as st
-import pandas as pd
-import openai,re
+import openai, re
 
-openai.api_key = ''
+openai.api_key = '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'
 
 cuisines_by_ethnicity = {
     "American": ["Fast Food", "Comfort Food", "BBQ", "Cajun", "Soul Food", "Tex-Mex", "New England"],
@@ -29,7 +28,7 @@ def suggest_ingredients(cuisine):
     return completion.choices[0].message["content"]
 
 def generate_recipe(ingredients, cuisine):
-    prompt = f"Create a {cuisine} recipe using the following ingredients: {ingredients}."
+    prompt = f"Create a {cuisine} recipe using the following ingredients: {ingredients} in the style of tarla dalal and sanjeev kapoor."
     completion = openai.ChatCompletion.create(
   model="gpt-3.5-turbo",
   messages=[
@@ -41,10 +40,27 @@ def generate_recipe(ingredients, cuisine):
 
 st.title("Ethnicity Based Recipe Generator")
 
-ethnicity = st.selectbox('Select Ethnicity', list(cuisines_by_ethnicity.keys()))
-cuisine = st.selectbox('Select Cuisine', cuisines_by_ethnicity[ethnicity])
+if "ethnicity" not in st.session_state:
+    st.session_state["ethnicity"] = list(cuisines_by_ethnicity.keys())[0]
 
-ingredients = st.text_area("Ingredients (comma-separated)", suggest_ingredients(cuisine))
+if "cuisine" not in st.session_state:
+    st.session_state["cuisine"] = cuisines_by_ethnicity[st.session_state["ethnicity"]][0]
+
+if "ingredients" not in st.session_state:
+    st.session_state["ingredients"] = suggest_ingredients(st.session_state["cuisine"])
+
+if "previous_cuisine" not in st.session_state:
+    st.session_state["previous_cuisine"] = st.session_state["cuisine"]
+
+ethnicity = st.selectbox('Select Ethnicity', list(cuisines_by_ethnicity.keys()), key="ethnicity")
+cuisine = st.selectbox('Select Cuisine', cuisines_by_ethnicity[ethnicity], key="cuisine")
+
+# Check if cuisine has changed, if so, update ingredients
+if st.session_state["previous_cuisine"] != st.session_state["cuisine"]:
+    st.session_state["ingredients"] = suggest_ingredients(st.session_state["cuisine"])
+    st.session_state["previous_cuisine"] = st.session_state["cuisine"]
+
+ingredients = st.text_area("Ingredients (comma-separated)", st.session_state["ingredients"], key="ingredients")
 
 if st.button('Generate Recipes'):
     for i in range(3):
