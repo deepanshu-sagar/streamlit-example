@@ -1,7 +1,7 @@
 import streamlit as st
 import openai, re
 
-openai.api_key = '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'
+openai.api_key = ''
 
 cuisines_by_ethnicity = {
     "American": ["Fast Food", "Comfort Food", "BBQ", "Cajun", "Soul Food", "Tex-Mex", "New England"],
