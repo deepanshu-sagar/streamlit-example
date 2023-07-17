@@ -1,7 +1,7 @@
 import streamlit as st
-import openai, re
+import openai, re,os
 
-openai.api_key = ''
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 cuisines_by_ethnicity = {
     "American": ["Fast Food", "Comfort Food", "BBQ", "Cajun", "Soul Food", "Tex-Mex", "New England"],
