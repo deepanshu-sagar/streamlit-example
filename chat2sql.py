@@ -17,6 +17,11 @@ def read_json(file_path: str) -> Dict[str, Any]:
         data = json.load(json_file)
     return data
 
+def read_txt(file_path: str) -> str:
+    with open(file_path, "r") as file:
+        data = file.read()
+    return data
+
 # Save json file
 def save_json(file_path: str, data: Dict[str, Any]):
     with open(file_path, "w") as json_file:
@@ -44,11 +49,13 @@ class ChatSql:
         self.conf: Dict[str, Any] = read_json(conf_path)
         self.llm: object = OpenAI(openai_api_key=self.conf["OPEN_AI_KEY"])
         self.info: str = str(read_json(get_final_path(1, ["info.json"])))
+        self.data: str = str(read_txt(get_final_path(1, ["data.txt"])))
 
     def prompt_to_query(self, prompt: str) -> Dict[str, str]:
         info = self.info
+        data= self.data
         template = """
-        Your mission is convert SQL query from given {prompt}. Use following database information for this purpose (info key is a database column name and info value is explanation). {info}
+        Your mission is convert SQL query from given {prompt}. Use following database information for this purpose (info key is a database column name and info value is explanation) : {info} .  along with this i am sharing some sample data from this table :  {data}
         --------
         Put your query in the  JSON structure with key name is 'query'
         """
@@ -56,6 +63,7 @@ class ChatSql:
         final_prompt = pr_.format(
             prompt=prompt,
             info=info,
+            data=data
         )
         gpt_query: Dict["str", "str"] = json.loads(self.llm(final_prompt))
 
@@ -67,7 +75,7 @@ class ChatSql:
 
     def raw_result_to_processed(self, raw_result: str) -> str:
         res_processing_template = """
-        Your mission is convert database result to meaningful sentences. Here is the database result: {database_result}
+        Your mission is convert database result to meaningful sentences. Here is the database result: {database_result}. validate the query before responding. 
         """
         db_pr = PromptTemplate(
             input_variables=["database_result"], template=res_processing_template
