@@ -82,7 +82,15 @@ def get_final_path(path_type: int, paths: list) -> str:
     return final_path
 
 app = FastAPI()
-
+"""
+curl --location --request POST 'http://localhost:5002/process' \
+--header 'api_key: <>' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "prompt": "How many records have less than 2 schain nodes?",
+  "api_key":"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"
+}'
+"""
 @app.post("/process")
 async def process(input: Input):
     csql = ChatSql()
