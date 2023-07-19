@@ -65,4 +65,4 @@ async def process(input: Input):
     info = read_file( f"{input.featureName}_info.json")
     data = read_file( f"{input.featureName}_data.txt")
     query = prompt_to_query_new(input.prompt, info, data)
-    return query
+    return {"Generated SQL Query": query}
