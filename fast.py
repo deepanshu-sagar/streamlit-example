@@ -47,6 +47,7 @@ def prompt_to_query_new(prompt: str, info: str, data: str):
     Your mission is convert SQL query from given {prompt}. Use following database information for this purpose (info key is a database column name and info value is explanation) : {info} .  along with this i am sharing some sample data from this table :  {data}. Create aggregation sql query on mapped column if you see aggregated by or categorized by keyword in input.
     --------
     Put your query in the  JSON structure with key name is 'query'
+    ONLY SELECT sql query is expected from the response. 
     No Other Explanations / Other Text is required. 
     """
     final_prompt = template.format(prompt=prompt, info=info, data=data)
