@@ -55,7 +55,7 @@ Create aggregation sql query on mapped column if you see aggregated by or catego
     ONLY SELECT sql query is expected from the response.
     No Other Explanations / Other Text is required.
     """
-    final_prompt = template.format(prompt=prompt[38:], info=info, data=data)
+    final_prompt = template.format(prompt=prompt[], info=info, data=data)
     output = run_cmd(final_prompt)
     return output
 
