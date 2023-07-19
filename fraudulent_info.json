@@ -1,0 +1,16 @@
+{
+"pub_id": "This is the id of publisher",
+"site_id": "This is site on publisher page",
+"app_or_domain": "This is either domain / adserving entity",
+"total_impressions": "This is a count of total impressions",
+"ivt_impression": "This is the count of invalid impressions",
+"ivt_rate": "This is the percentage value of invalid impressions",
+"aggregated_gross_impressions": "This is an aggregate on total impressions",
+"type" : "This is the type, which can be Video / Display",
+"fraud_type" : "This holds fraud type information",
+"vendor" : "This is the vendor who provided us this data",
+"create_timestamp" : "This is the date at which record was created",
+"update_timestamp": "This is the date at which record was updated",
+"scheduled_from": "This is the from date for report generation",
+"scheduled_to": "This is the to date for report generation"
+}
