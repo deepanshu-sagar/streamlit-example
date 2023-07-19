@@ -1,0 +1,21 @@
+{
+  "id": "Unique identifier for each record",
+  "pub_id": "Publisher ID",
+  "site_id": "Site ID",
+  "ad_tag": "Ad Tag",
+  "ad_format": "0-All Inventory, 1-Banner, 2-Video, 3-Native",
+  "platform_id": "0-All Platforms, 1-Desktop Web, 2-Mobile Web, 4-iOS App, 5-Android App",
+  "app_or_domain": "Domain or app_bundle_id",
+  "deal_id": "Deal ID",
+  "total_impressions": "Total Impressions",
+  "valid_impression": "Valid Impressions",
+  "measured_impression": "Measured Impressions",
+  "viewable_impression": "Viewable Impressions",
+  "vendor": "1-Pixalate, 2-Moat",
+  "create_timestamp": "Timestamp when the record was created",
+  "dsp_id": "DSP ID",
+  "buyer_id": "Buyer ID",
+  "gm_viewable_impression": "GM Viewable Impressions",
+  "reached_complete_rate": "Reached Complete Rate",
+  "viewable_completion": "Viewable Completion"
+}
