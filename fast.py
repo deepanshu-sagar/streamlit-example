@@ -25,7 +25,7 @@ def run_cmd(prompt_text):
         with open(pyfile_path, 'w') as prompt_file:
             print ("")
             prompt_file.write("prompt_text")
-        
+
         p2 = subprocess.Popen(["bito", "-p", prompt_path, "-f", pyfile_path], stdout=subprocess.PIPE)  # added stdout=subprocess.PIPE
         output, _ = p2.communicate()  # Get output once here
     except subprocess.CalledProcessError as e:
@@ -44,12 +44,18 @@ def run_cmd(prompt_text):
 
 def prompt_to_query_new(prompt: str, info: str, data: str):
     template = """
-    Your mission is convert SQL query from given {prompt}. Use following database information for this purpose (info key is a database column name and info value is explanation) : {info} .  along with this i am sharing some sample data from this table :  {data}. Create aggregation sql query on mapped column if you see aggregated by or categorized by keyword in input.
+    Your mission is convert SQL query from given request
+ {prompt}
+Do not include featureName in the output sql query.
+Use following database information for this purpose (info key is a database column name and info value is explanation) : {info} .
+along with this i am sharing some sample data from this table :  {data}.
+Create aggregation sql query on mapped column if you see aggregated by or categorized by keyword in input.
     --------
     Put your query in the  JSON structure with key name is 'query'
-    No Other Explanations / Other Text is required. 
+    ONLY SELECT sql query is expected from the response.
+    No Other Explanations / Other Text is required.
     """
-    final_prompt = template.format(prompt=prompt, info=info, data=data)
+    final_prompt = template.format(prompt=prompt[], info=info, data=data)
     output = run_cmd(final_prompt)
     return output
 
@@ -65,4 +71,5 @@ async def process(input: Input):
     info = read_file( f"{input.featureName}_info.json")
     data = read_file( f"{input.featureName}_data.txt")
     query = prompt_to_query_new(input.prompt, info, data)
+    #query_json = json.loads(query)
     return {"Generated SQL Query": query}
