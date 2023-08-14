@@ -1,87 +1,41 @@
 import streamlit as st
-import openai, re,os
+import openai, re,os,time,subprocess
+import tempfile
+import pdfkit
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-cuisines_by_ethnicity = {
-    "American": ["Fast Food", "Comfort Food", "BBQ", "Cajun", "Soul Food", "Tex-Mex", "New England"],
-    "Chinese": ["Szechuan", "Cantonese", "Hunan", "Shandong", "Fujian", "Zhejiang", "Jiangsu"],
-    "Indian": ["North Indian", "South Indian", "West Indian", "East Indian", "Rajasthani", "Punjabi", "Goan"],
-    "Italian": ["Tuscan", "Sicilian", "Lazio", "Veneto", "Lombard", "Piedmontese", "Calabrian"],
-    "Mexican": ["Oaxacan", "Veracruz", "Yucatecan", "Poblano", "Norteno", "Jalisco", "Baja"],
-    "Japanese": ["Kanto", "Kansai", "Hokkaido", "Kyushu", "Chugoku", "Tohoku", "Chubu"],
-    "Thai": ["Central Thai", "Isan", "Southern Thai", "Northern Thai", "Western Thai", "Eastern Thai", "Bangkok"]
-}
+st.title("Vellocity Fitness Studio")
 
 
+# Create some empty space below the links to ensure the rest of the content is pushed downwards
+empty_space_below = [st.empty() for _ in range(6)]
 
-def suggest_ingredients(cuisine,vegnonveg):
-    prompt = f"What are some typical ingredients used in {cuisine} cuisine for {vegnonveg} person? only ingriedients names. in comma separated format. in the style of tarla dalal and sanjeev kapoor. Example : Onion, Lettuce, Carrot"
-    completion = openai.ChatCompletion.create(
-  model="gpt-3.5-turbo",
-  messages=[
-    {"role": "system", "content": "You are a helpful assistant."},
-    {"role": "user", "content": f"{prompt}"}
-  ]
-)
-    #print (completion.choices[0].message["content"])
-    #ing = re.findall("- (.*)", completion.choices[0].message['content'])
-    #print (ing)
-    return completion.choices[0].message["content"]
+def run_cmd(prompt_text):
+    start_time = time.time()
 
-def generate_recipe(ingredients, cuisine,vegnonveg):
-    prompt = f"Create a {cuisine} recipe for {vegnonveg} person using the following ingredients: {ingredients} in the style of tarla dalal and sanjeev kapoor."
-    completion = openai.ChatCompletion.create(
-  model="gpt-3.5-turbo",
-  messages=[
-    {"role": "system", "content": "You are a helpful assistant."},
-    {"role": "user", "content": f"{prompt}"}
-  ]
-)
-    return completion.choices[0].message
+    # Create a temporary file and write the prompt_text into it
+    prompt_fd, prompt_path = tempfile.mkstemp()
+    pyfile_path="tmp"
+    try:
+        with os.fdopen(prompt_fd, 'w') as prompt_file:
+            print (f"{prompt_text}")
+            prompt_file.write(prompt_text)
+        with open(pyfile_path, 'w') as prompt_file:
+            print ("")
+            prompt_file.write("prompt_text")
 
-st.title("Ethnicity Based Recipe Generator")
+        p2 = subprocess.Popen(["bito", "-p", prompt_path, "-f", pyfile_path], stdout=subprocess.PIPE)  # added stdout=subprocess.PIPE
+        output, _ = p2.communicate()  # Get output once here
+    except subprocess.CalledProcessError as e:
+        print(f"Subprocess returned error: {e.output}")
+        output = e.output
+    finally:
+        # Ensure the temporary file is deleted even if an error occurs
+        os.unlink(prompt_path)
 
-vegnonveg = st.selectbox('Select Veg/ Non-Veg', ["Veg", "Non-Veg"], key="vegnonveg")
+    end_time = time.time()
+    total_time = end_time - start_time
 
-# Initialize session state if not already initialized
-if "ethnicity" not in st.session_state:
-    st.session_state["ethnicity"] = list(cuisines_by_ethnicity.keys())[0]
-
-if "cuisine" not in st.session_state:
-    st.session_state["cuisine"] = cuisines_by_ethnicity[st.session_state["ethnicity"]][0]
-
-if "previous_cuisine" not in st.session_state:
-    st.session_state["previous_cuisine"] = ""
-
-if "ingredients" not in st.session_state:
-    st.session_state["ingredients"] = ""
-
-ethnicity = st.selectbox('Select Ethnicity', list(cuisines_by_ethnicity.keys()), key="ethnicity")
-cuisine = st.selectbox('Select Cuisine', cuisines_by_ethnicity[ethnicity], key="cuisine")
-
-# Populate Ingredients Button
-if st.button('Populate Ingredients'):
-    # Check if cuisine has changed, if so, update ingredients
-    if st.session_state["previous_cuisine"] != st.session_state["cuisine"]:
-        st.session_state["ingredients"] = suggest_ingredients(st.session_state["cuisine"], vegnonveg)
-        st.session_state["previous_cuisine"] = st.session_state["cuisine"]
-
-# If ingredients are available, show the text area
-if st.session_state["ingredients"]:
-    ingredients = st.text_area("Ingredients (comma-separated)", st.session_state["ingredients"], key="ingredients")
-
-    if st.button('Generate Recipes'):
-        recipe = generate_recipe(ingredients, cuisine, vegnonveg)
-        recipe_content = recipe["content"]
-        recipe_content = recipe_content.replace("\n", "<br />")
-        st.markdown(f'''
-            <div style="height: 600px; overflow-y: auto; border: 2px solid #000; padding: 10px;">
-                {recipe_content}
-            </div>
-        ''', unsafe_allow_html=True)
-
-st.title("Diet Plan Generator")
+    return output  # Return the stored output, decoded from bytes to string
 
 def generate_diet_plan(goals):
     """Generate a diet plan based on goals using OpenAI."""
@@ -89,17 +43,11 @@ def generate_diet_plan(goals):
     if not goals:
         return "Please select at least one goal to get a diet plan."
 
-    prompt = f"Please provide a diet plan for the following goals: {' and '.join(goals)}. Break it down into Breakfast, Lunch, and Dinner."
-
-    completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a knowledgeable nutritionist."},
-            {"role": "user", "content": prompt}
-        ]
-    )
+    prompt = f"Please provide a diet plan for the following goals: {' and '.join(goals)}. Break it down into Breakfast, Lunch, and Dinner. Take note that Diet Plan is to be created as per the person is living in Pune, India. Try to keep the Diet Plan Cost effective where ever possible. Do not mention this location and cost effective information in the response."
+    output = run_cmd(prompt)
+    return output
     
-    return completion.choices[0].message["content"]
+    #return completion.choices[0].message["content"]
 
 # Initialize session state variables if not already present
 if 'submitted_details' not in st.session_state:
@@ -135,6 +83,27 @@ with details_container:
             else:
                 st.session_state.category = "Obesity"
 
+def format_diet_plan(plan_bytes):
+    # Decode bytes to string
+    plan_str = plan_bytes.decode('utf-8')
+    
+    # Split string by line breaks and format
+    lines = plan_str.split("\n")
+    formatted_plan = ""
+    for line in lines:
+        if line:
+            # If it's a header line (like "Breakfast:")
+            if ":" in line:
+                formatted_plan += f"\n\n**{line}**\n"
+            else:
+                # If it's a list item (like "2-3 boiled eggs")
+                if "-" in line[0:2]:
+                    formatted_plan += f"- {line[2:].strip()}\n"
+                else:
+                    formatted_plan += f"{line}\n"
+    return formatted_plan
+
+
 # Goals input container
 goals_container = st.container()
 with goals_container:
@@ -149,6 +118,43 @@ with goals_container:
         if st.button('Generate Diet Plan'):
             if goals:
                 diet_plan = generate_diet_plan(goals)
-                st.markdown(diet_plan)
+                # Format the diet_plan for better display
+                formatted_diet = format_diet_plan(diet_plan)
+                st.markdown(formatted_diet)
+
             else:
                 st.write("Please select at least one goal to get a diet plan.")
+
+
+
+# Create some empty space above the links to push them to the middle
+empty_space_above = [st.empty() for _ in range(6)]
+
+links_container = st.container()
+
+with links_container:
+    col1, col2, col3 = st.columns([3,6,1])
+
+    with col2:
+        st.markdown("#### Connect with us:")
+        st.markdown(
+            '<a href="https://www.google.com/search?hl=en-GB&authuser=1&sxsrf=ALiCzsbjhjaoDzymXxMbxDvj1nf9M7MUxA:1652284809105&q=Vellocity+Fitness+Studio&ludocid=13157170914602917019&gsas=1&lsig=AB86z5X5G3Gg3L9SuiBF_TQ0YG9k&kgs=29295f080505f34d&shndl=-1&source=sh/x/kp/local/2&" target="_blank">📞 Google Reviews</a>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            '<a href="https://wa.me/+91-9766623660" target="_blank">📞 WhatsApp Us</a>',
+            unsafe_allow_html=True,
+        )
+        
+        st.markdown(
+            '<a href="https://www.instagram.com/artteeofficial/" target="_blank">👕 Artteeofficial Instagram</a>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            '<a href="https://www.instagram.com/Vellocityfndstudio/" target="_blank">📷 Vellocity Fitness Studio Instagram</a>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            '<a href="https://www.google.com/maps/place/Vellocity+Fitness+Studio/@18.6002561,73.7641115,15z/data=!4m6!3m5!1s0x3bc2b96e6f27c2df:0xb697a93cb6021c9b!8m2!3d18.6002561!4d73.7641115!16s%2Fg%2F11f15m5lzj?hl=en-GB&entry=ttu" target="_blank">👕 Vellocity Fitness Studio Maps</a>',
+            unsafe_allow_html=True,
+        )
