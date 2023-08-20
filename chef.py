@@ -72,7 +72,8 @@ if not st.session_state.logged_in:
 
     if choice == "Login":
         st.title("Signup/Signin Page")
-        st.subheader("Login Section")
+        st.subheader("Signup First")
+		st.subheader("Login from Left sidebar using your Username and Password")
         username = st.sidebar.text_input("User Name")
         password = st.sidebar.text_input("Password", type='password')
         if st.sidebar.button("Login"):
