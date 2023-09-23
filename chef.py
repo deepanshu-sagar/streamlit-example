@@ -297,9 +297,9 @@ else:
         api_key = "r8JKN0k6O6NkeFI4xRKp46jojIqvIOPD"
 
         # For demonstration purposes, using a fixed gif_id
-        gif_id = "WAazKNEk4s0Ug"  
+        # gif_id = "WAazKNEk4s0Ug"  
 
-        response = requests.get(f"https://api.giphy.com/v1/gifs/{gif_id}?api_key={api_key}&tag={tag}&rating=g")
+        response = requests.get(f"https://api.giphy.com/v1/gifs/random?api_key={api_key}&tag={tag}&rating=g")
 
         if response.status_code == 200:
             gif_url = response.json()["data"]["images"]["original"]["url"]
